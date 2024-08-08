@@ -33,7 +33,6 @@ def generate_card_text(target, sentiment, text_type):
     )
     return response.text.strip()
 
-
 def generate_ai_letter(context):
     user_prompt = f"""
     모든 대답은 한국어로 대답해줘.
@@ -75,7 +74,6 @@ def modify_custom_letter(context):
     # 따옴표를 제거
     modified_letter = response.text.strip().strip('"')
     return modified_letter
-
 
 @app.route('/create/phrase', methods=['POST'])
 def generate_card_text_api():
@@ -125,3 +123,4 @@ def create_letter(letter_type):
 
 if __name__ == '__main__':
     app.run(debug=True)
+
