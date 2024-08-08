@@ -33,6 +33,7 @@ def generate_card_text(target, sentiment, text_type):
     )
     return response.text.strip()
 
+
 def generate_ai_letter(context):
     user_prompt = f"""
     모든 대답은 한국어로 대답해줘.
@@ -75,6 +76,7 @@ def modify_custom_letter(context):
     modified_letter = response.text.strip().strip('"')
     return modified_letter
 
+
 @app.route('/create/phrase', methods=['POST'])
 def generate_card_text_api():
     data = request.get_json()
@@ -109,9 +111,9 @@ def create_letter(letter_type):
             return jsonify({"error": str(e)}), 500
 
     elif letter_type == 'custom':
-        content = data.get("context")
+        context = data.get("context")
         if not context:
-            return jsonify({"error": "Missing 'contents' in request"}), 400
+            return jsonify({"error": "Missing 'context' in request"}), 400
         try:
             modified_letter = modify_custom_letter(context)
             return jsonify({"letter": modified_letter})
@@ -121,6 +123,6 @@ def create_letter(letter_type):
     else:
         return jsonify({"error": "Invalid 'type' in request"}), 400
 
+
 if __name__ == '__main__':
     app.run(debug=True)
-
