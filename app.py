@@ -2,9 +2,17 @@ from flask import Flask, request, jsonify
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
 
 # .env 파일에서 환경 변수를 로드
 load_dotenv()
+
+# firebase 연동 초기화
+cred = credentials.Certificate("serviceAccountKey.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
 app = Flask(__name__)
 
