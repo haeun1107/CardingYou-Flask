@@ -2,9 +2,18 @@ from flask import Flask, request, jsonify
 import google.generativeai as genai
 import os
 from dotenv import load_dotenv
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
+import random
 
 # .env 파일에서 환경 변수를 로드
 load_dotenv()
+
+# firebase 연동 초기화
+cred = credentials.Certificate("serviceAccountKey.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
 app = Flask(__name__)
 
@@ -76,6 +85,37 @@ def modify_custom_letter(context):
     modified_letter = response.text.strip().strip('"')
     return modified_letter
 
+def set_doc_id_for_sentiment(sentiment):
+    id_list = {"반가움": '1', "미안함": '2', "축하함": '3', "고마움": '4', "기쁨": '5'}
+    return id_list.get(sentiment, '0')
+
+def get_card_url_from_db(sentiment):
+    card_collection = db.collection('cardImg')
+
+    doc_id_start = set_doc_id_for_sentiment(sentiment)
+    doc_id_next = str(int(doc_id_start) + 1)
+
+    if doc_id_start != '0':
+        card_documents = card_collection.where(field_path='typeId', op_string='>=', value=doc_id_start).where(field_path='typeId', op_string='<', value=doc_id_next).stream()
+
+        img_urls = []
+
+        for doc in card_documents:
+            img_url = doc.to_dict()['imgUrl']
+            img_urls.append(img_url)
+            print(f'{doc.id} => {img_url}')
+
+        return random.choice(img_urls)
+    else:
+        img_url = ""
+        print(f'{"직접 입력"} => {img_url}')
+        return img_url
+
+@app.route('/getUrl')
+def test_card_url_from_db():
+    data = request.get_json()
+    sentiment = data.get("sentiment")
+    return jsonify({"cardImgUrl": get_card_url_from_db(sentiment)})
 
 @app.route('/create/phrase', methods=['POST'])
 def generate_card_text_api():
