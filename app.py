@@ -12,16 +12,16 @@ load_dotenv()
 
 # firebase 연동 초기화
 cred = credentials.Certificate({
-  "type": os.getenv("TYPE"),
-  "project_id": os.getenv("PROJECT_ID"),
-  "private_key_id": os.getenv("PRIVATE_KEY_ID"),
-  "private_key": os.getenv("PRIVATE_KEY").replace("\\n", "\n"),  # 키의 줄바꿈 처리
-  "client_email": os.getenv("CLIENT_EMAIL"),
-  "client_id": os.getenv("CLIENT_ID"),
-  "auth_uri": os.getenv("AUTH_URI"),
-  "token_uri": os.getenv("TOKEN_URI"),
-  "auth_provider_x509_cert_url": os.getenv("AUTH_PROVIDER_CERT_URL"),
-  "client_x509_cert_url": os.getenv("CLIENT_CERT_URL")
+    "type": os.getenv("TYPE"),
+    "project_id": os.getenv("PROJECT_ID"),
+    "private_key_id": os.getenv("PRIVATE_KEY_ID"),
+    "private_key": os.getenv("PRIVATE_KEY").replace("\\n", "\n"),  # 키의 줄바꿈 처리
+    "client_email": os.getenv("CLIENT_EMAIL"),
+    "client_id": os.getenv("CLIENT_ID"),
+    "auth_uri": os.getenv("AUTH_URI"),
+    "token_uri": os.getenv("TOKEN_URI"),
+    "auth_provider_x509_cert_url": os.getenv("AUTH_PROVIDER_CERT_URL"),
+    "client_x509_cert_url": os.getenv("CLIENT_CERT_URL")
 })
 
 firebase_admin.initialize_app(cred)
@@ -81,8 +81,9 @@ def generate_ai_letter(context):
 
 def modify_custom_letter(context):
     user_prompt = f"""
-    모든 대답은 한국어로 대답해줘.
+     모든 대답은 한국어로 대답해줘.
     [다음 문구를 자연스럽고 예쁘게 고쳐줘: "{context}"]
+    고쳐진 문구만 나오고, 너의 피드백이나 말은 필요 없어. 
     """
 
     response = model.generate_content(
@@ -97,9 +98,11 @@ def modify_custom_letter(context):
     modified_letter = response.text.strip().strip('"')
     return modified_letter
 
+
 def set_doc_id_for_sentiment(sentiment):
     id_list = {"반가움": '1', "미안함": '2', "축하함": '3', "고마움": '4', "기쁨": '5'}
     return id_list.get(sentiment, '0')
+
 
 def get_card_url_from_db(sentiment):
     card_collection = db.collection('cardImg')
@@ -108,7 +111,8 @@ def get_card_url_from_db(sentiment):
     doc_id_next = str(int(doc_id_start) + 1)
 
     if doc_id_start != '0':
-        card_documents = card_collection.where(field_path='typeId', op_string='>=', value=doc_id_start).where(field_path='typeId', op_string='<', value=doc_id_next).stream()
+        card_documents = card_collection.where(field_path='typeId', op_string='>=', value=doc_id_start).where(
+            field_path='typeId', op_string='<', value=doc_id_next).stream()
 
         img_urls = []
 
@@ -123,11 +127,13 @@ def get_card_url_from_db(sentiment):
         print(f'{"직접 입력"} => {img_url}')
         return img_url
 
+
 @app.route('/getUrl')
 def test_card_url_from_db():
     data = request.get_json()
     sentiment = data.get("sentiment")
     return jsonify({"cardImgUrl": get_card_url_from_db(sentiment)})
+
 
 @app.route('/create/phrase', methods=['POST'])
 def generate_card_text_api():
