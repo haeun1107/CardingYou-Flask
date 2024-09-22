@@ -11,7 +11,19 @@ import random
 load_dotenv()
 
 # firebase 연동 초기화
-cred = credentials.Certificate("serviceAccountKey.json")
+cred = credentials.Certificate({
+  "type": os.getenv("TYPE"),
+  "project_id": os.getenv("PROJECT_ID"),
+  "private_key_id": os.getenv("PRIVATE_KEY_ID"),
+  "private_key": os.getenv("PRIVATE_KEY").replace("\\n", "\n"),  # 키의 줄바꿈 처리
+  "client_email": os.getenv("CLIENT_EMAIL"),
+  "client_id": os.getenv("CLIENT_ID"),
+  "auth_uri": os.getenv("AUTH_URI"),
+  "token_uri": os.getenv("TOKEN_URI"),
+  "auth_provider_x509_cert_url": os.getenv("AUTH_PROVIDER_CERT_URL"),
+  "client_x509_cert_url": os.getenv("CLIENT_CERT_URL")
+})
+
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
@@ -123,16 +135,16 @@ def generate_card_text_api():
     target = data.get("target")
     sentiment = data.get("sentiment")
     text_type = data.get("type")
-    is_image = data.get("isImage", False)
+    image_url = data.get("image_url", False)
 
     if not target or not sentiment or not text_type:
         return jsonify({"error": "Missing 'target', 'sentiment' or 'type' in request"}), 400
 
     try:
         card_text = generate_card_text(target, sentiment, text_type)
-        img_url = "https://example.com/image.jpg" if is_image else ""
-
-        return jsonify({"phrase": card_text, "imgURL": img_url})
+        if image_url is None:
+            image_url = get_card_url_from_db(sentiment)
+        return jsonify({"phrase": card_text, "imgURL": image_url})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
