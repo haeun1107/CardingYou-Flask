@@ -123,16 +123,16 @@ def generate_card_text_api():
     target = data.get("target")
     sentiment = data.get("sentiment")
     text_type = data.get("type")
-    is_image = data.get("isImage", False)
+    image_url = data.get("image_url", False)
 
     if not target or not sentiment or not text_type:
         return jsonify({"error": "Missing 'target', 'sentiment' or 'type' in request"}), 400
 
     try:
         card_text = generate_card_text(target, sentiment, text_type)
-        img_url = "https://example.com/image.jpg" if is_image else ""
-
-        return jsonify({"phrase": card_text, "imgURL": img_url})
+        if image_url is None:
+            image_url = get_card_url_from_db(sentiment)
+        return jsonify({"phrase": card_text, "imgURL": image_url})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
