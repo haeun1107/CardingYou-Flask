@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import google.generativeai as genai
+import json
 import os
 from dotenv import load_dotenv
 import firebase_admin
@@ -10,12 +11,12 @@ import random
 # .env 파일에서 환경 변수를 로드
 load_dotenv()
 
-# firebase 연동 초기화
+# 환경 변수에서 Firebase 자격 증명 정보를 불러오기
 cred = credentials.Certificate({
     "type": os.getenv("TYPE"),
     "project_id": os.getenv("PROJECT_ID"),
     "private_key_id": os.getenv("PRIVATE_KEY_ID"),
-    "private_key": os.getenv("PRIVATE_KEY").replace("\\n", "\n"),  # 키의 줄바꿈 처리
+    "private_key" : os.getenv("PRIVATE_KEY"),
     "client_email": os.getenv("CLIENT_EMAIL"),
     "client_id": os.getenv("CLIENT_ID"),
     "auth_uri": os.getenv("AUTH_URI"),
